@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+        >
+
+
+    <TextView android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:text="@string/adjust_sensor_title"
+              android:textSize="16pt"
+              android:textColor="#FFFFFF"
+              android:background="#000000"
+            />
+    <SeekBar android:id="@+id/adjustor_seek"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:max="100"
+             android:progress="50"
+             />
+    <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
+                  android:layout_height="wrap_content" android:paddingBottom="10pt">
+        <TextView android:layout_height="fill_parent" android:layout_width="wrap_content" android:gravity="left"
+                  android:text="@string/sensor_lower_sensitivity"/>
+        <TextView android:layout_height="wrap_content" android:layout_width="fill_parent" android:gravity="right"
+                  android:text="@string/sensor_higher_sensitivity" android:layout_gravity="right"/>
+    </LinearLayout>
+
+    <TextView android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:text="@string/scary_level_config_title"
+              android:textSize="16pt"
+              android:textColor="#FFFFFF"
+              android:background="#000000"
+            />
+    <EditText android:id="@+id/scary_level_text_input" android:layout_height="wrap_content"
+              android:layout_width="fill_parent" android:numeric="integer"/>
+
+    <Button android:id="@+id/save_config_button" android:layout_height="wrap_content" android:layout_width="fill_parent"
+            android:onClick="saveSettings" android:text="@string/save_button" android:layout_gravity="bottom"/>
+
+</LinearLayout>
