@@ -70,8 +70,12 @@ public class RecorderService extends RoboService {
     private void startRecording() {
         if (!isRecording) {
             if (prepareVideoRecorder()) {
-                mMediaRecorder.start();
-                isRecording = true;
+                try {
+                    mMediaRecorder.start();
+                    isRecording = true;
+                } catch (RuntimeException e) {
+                    releaseMediaRecorder();
+                }
             } else {
                 releaseMediaRecorder();
             }
@@ -99,7 +103,11 @@ public class RecorderService extends RoboService {
 */
         // Step 4: Set output file
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        mMediaRecorder.setOutputFile(getOutputMediaFile().toString() + "/" + mazeDotState.getUserName().replace(" ", "_") + timeStamp + ".mpeg");
+        File outputFile = getOutputMediaFile();
+        if (outputFile == null) {
+            return false;
+        }
+        mMediaRecorder.setOutputFile(outputFile.toString() + "/" + mazeDotState.getUserName().replace(" ", "_") + timeStamp + ".mpeg");
 
         // Step 5: Set the preview output
         mMediaRecorder.setPreviewDisplay(mazeDotState.getSurfaceHolder().getSurface());
@@ -158,7 +166,6 @@ public class RecorderService extends RoboService {
         }
 
         // Create a media file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         File mediaFile;
         mediaFile = new File(mediaStorageDir.getPath() + File.separator);
 
@@ -180,8 +187,8 @@ public class RecorderService extends RoboService {
                     break;
                 }
             }
-        } catch (Exception e) {
-            Log.i("CameraInfo","The default camera will be used");
+        } catch (Throwable e) {
+            Log.i("CameraInfo", "The default camera will be used");
         }
         Camera c = null;
         try {

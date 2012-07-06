@@ -20,7 +20,7 @@ public class MazeDotState {
 
     private int scaryLevel = 3;
 
-    private String userName;
+    private String userName="";
 
     private int currentLevel = 1;
 

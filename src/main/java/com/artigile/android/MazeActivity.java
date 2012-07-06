@@ -4,8 +4,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.AudioManager;
-import android.media.SoundPool;
 import android.os.Bundle;
 import android.view.*;
 import android.widget.EditText;
@@ -61,12 +59,11 @@ public class MazeActivity extends RoboActivity implements SurfaceHolder.Callback
         mazeDotState.setSurfaceHolder(mSurfaceHolder);
 
 
-
         showNameEnterDialog();
     }
 
     private void showNameEnterDialog() {
-        if (mazeDotState.getUserName() == null || mazeDotState.getUserName().isEmpty()) {
+        if (mazeDotState.getUserName() == null || mazeDotState.getUserName().replace(" ", "").length() == 0) {
             final EditText input = new EditText(this);
 
             new AlertDialog.Builder(this)
