@@ -74,6 +74,7 @@ public class RecorderService extends RoboService {
                     mMediaRecorder.start();
                     isRecording = true;
                 } catch (RuntimeException e) {
+                    isRecording = false;
                     releaseMediaRecorder();
                 }
             } else {
@@ -84,7 +85,7 @@ public class RecorderService extends RoboService {
 
 
     private boolean prepareVideoRecorder() {
-        camera = getCameraInstance();
+        configureCamera();
         mMediaRecorder = new MediaRecorder();
 
         // Step 1: Unlock and set camera to MediaRecorder
@@ -92,15 +93,15 @@ public class RecorderService extends RoboService {
         mMediaRecorder.setCamera(camera);
 
         // Step 2: Set sources
-        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
 
         // Step 3: Set a CamcorderProfile (requires API Level 8 or higher)
-        mMediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
-        /*mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        //mMediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_LOW));
+        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
-*/
+
         // Step 4: Set output file
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         File outputFile = getOutputMediaFile();
@@ -172,7 +173,7 @@ public class RecorderService extends RoboService {
         return mediaFile;
     }
 
-    private Camera getCameraInstance() {
+    private void configureCamera() {
         int mCameraId = -1;
 
         try {//if API >=9 then we try to get info from CameraInfo)
@@ -200,7 +201,7 @@ public class RecorderService extends RoboService {
         } catch (Exception e) {
             // Camera is not available (in use or does not exist)
         }
-        return c; // returns null if camera is unavailable
+        camera=c;
     }
 
     private void releaseMediaRecorder() {

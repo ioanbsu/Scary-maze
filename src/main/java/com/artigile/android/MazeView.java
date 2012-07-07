@@ -38,6 +38,10 @@ public class MazeView extends View implements SensorEventListener {
     private SoundPool sound;
     private int soundId;
 
+    private int levelCompletedLowBorder;
+    private int levelCompletedTopBorder;
+
+
     public MazeView(Context context, android.util.AttributeSet attrs) {
         super(context, attrs);
         init();
@@ -78,6 +82,8 @@ public class MazeView extends View implements SensorEventListener {
 
 
     public void startSimulation() {
+        levelCompletedLowBorder = mDisplay.getWidth() / 4 / mazeDotState.getCurrentLevel();
+        levelCompletedTopBorder = mDisplay.getWidth() - Dot.RADIUS * 2;
         dot.resetSpeeds();
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_UI);
     }
@@ -100,7 +106,7 @@ public class MazeView extends View implements SensorEventListener {
             if (mazeDotState.getCurrentLevel() == mazeDotState.getScaryLevel()) {
                 Intent intent = new Intent(getContext(), RecorderService.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                showAlertForDing();//there is a ding when user
+//                showAlertForDing();//there is a ding when user
                 getContext().startService(intent);
             }
             return;
@@ -204,7 +210,7 @@ public class MazeView extends View implements SensorEventListener {
                 .setPositiveButton(R.string.close_button, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         getContext().stopService(new Intent(getContext(), RecorderService.class));
-                        System.exit(0);
+                        // System.exit(0);
                     }
                 })
                 .show();
@@ -215,7 +221,7 @@ public class MazeView extends View implements SensorEventListener {
     }
 
     private boolean checkIfLevelCompleted() {
-        if (mazeDotState.getCurrentLevel() > 0 && dot.getY() > 0 && dot.getY() < mDisplay.getWidth() / 4 / mazeDotState.getCurrentLevel() && dot.getX() > mDisplay.getWidth() - Dot.RADIUS * 2) {
+        if (mazeDotState.getCurrentLevel() > 0 && dot.getY() > 0 && dot.getY() < levelCompletedLowBorder && dot.getX() > levelCompletedTopBorder) {
             return true;
         }
         return false;
