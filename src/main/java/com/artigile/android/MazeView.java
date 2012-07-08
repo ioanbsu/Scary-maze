@@ -16,7 +16,6 @@ import android.os.Vibrator;
 import android.text.TextPaint;
 import android.view.*;
 import com.google.inject.Singleton;
-import roboguice.RoboGuice;
 
 import java.util.List;
 
@@ -31,7 +30,6 @@ public class MazeView extends View implements SensorEventListener {
     private float storedTime;
     private float mSensorX;
     private float mSensorY;
-    private Dot dot = RoboGuice.getInjector(getContext()).getInstance(Dot.class);
     private Bitmap metalBall;
     private MazeDotState mazeDotState;
 
@@ -69,7 +67,7 @@ public class MazeView extends View implements SensorEventListener {
                 if (!mazeDotState.isGameStarted()) {
                     storedTime = System.nanoTime();
                     mazeDotState.setGameStarted(true);
-                    dot.resetAll();
+                    mazeDotState.getDot().resetAll();
                     startSimulation();
                     invalidate();
                 } else {
@@ -84,7 +82,7 @@ public class MazeView extends View implements SensorEventListener {
     public void startSimulation() {
         levelCompletedLowBorder = mDisplay.getWidth() / 4 / mazeDotState.getCurrentLevel();
         levelCompletedTopBorder = mDisplay.getWidth() - Dot.RADIUS * 2;
-        dot.resetSpeeds();
+        mazeDotState.getDot().resetSpeeds();
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_UI);
     }
 
@@ -95,7 +93,7 @@ public class MazeView extends View implements SensorEventListener {
             storedTime = System.nanoTime();
         }
 
-        boolean dotInside = checkIfDotInsideMaze(mazeDotState.getMazeRectangles(), dot.getX(), dot.getY());
+        boolean dotInside = checkIfDotInsideMaze(mazeDotState.getMazeRectangles(), mazeDotState.getDot().getX(), mazeDotState.getDot().getY());
         drawDotAndMaze(canvas, dotInside);
         if (checkIfLevelCompleted()) {
             mSensorManager.unregisterListener(this);
@@ -166,25 +164,26 @@ public class MazeView extends View implements SensorEventListener {
         for (Rect rect : mazeDotState.getMazeRectangles()) {
             canvas.drawRect(rect, mazePaint);
         }
-        dot.updateCoords(mSensorX * (-1), mSensorY, System.nanoTime() - storedTime);
-        if (dot.getX() > mDisplay.getWidth() - Dot.RADIUS) {
-            dot.setX(mDisplay.getWidth() - Dot.RADIUS);
-            dot.setSpeedX(dot.getSpeedX() * (-0.75F));
+        mazeDotState.getDot().updateCoords(mSensorX * (-1), mSensorY - 2, System.nanoTime() - storedTime);
+        if (mazeDotState.getDot().getX() > mDisplay.getWidth() - Dot.RADIUS) {
+            mazeDotState.getDot().setX(mDisplay.getWidth() - Dot.RADIUS);
+            mazeDotState.getDot().setSpeedX(mazeDotState.getDot().getSpeedX() * (-0.75F));
         }
-        if (dot.getY() > mDisplay.getHeight() - Dot.RADIUS) {
-            dot.setY(mDisplay.getHeight() - Dot.RADIUS);
-            dot.setSpeedY(Math.abs(dot.getSpeedY()) * (-0.75F));
+        if (mazeDotState.getDot().getY() > mDisplay.getHeight() - Dot.RADIUS) {
+            mazeDotState.getDot().setY(mDisplay.getHeight() - Dot.RADIUS);
+            mazeDotState.getDot().setSpeedY(Math.abs(mazeDotState.getDot().getSpeedY()) * (-0.75F));
         }
-        if (dot.getX() < Dot.RADIUS) {
-            dot.setX(Dot.RADIUS);
-            dot.setSpeedX(Math.abs(dot.getSpeedX() * 0.75F));
+        if (mazeDotState.getDot().getX() < Dot.RADIUS) {
+            mazeDotState.getDot().setX(Dot.RADIUS);
+            mazeDotState.getDot().setSpeedX(Math.abs(mazeDotState.getDot().getSpeedX() * 0.75F));
         }
-        if (dot.getY() < Dot.RADIUS) {
-            dot.setY(Dot.RADIUS);
-            dot.setSpeedY(Math.abs(dot.getSpeedY() * 0.75F));
+        if (mazeDotState.getDot().getY() < Dot.RADIUS) {
+            mazeDotState.getDot().setY(Dot.RADIUS);
+            mazeDotState.getDot().setSpeedY(Math.abs(mazeDotState.getDot().getSpeedY() * 0.75F));
         }
-        canvas.drawBitmap(metalBall, dot.getX() - Dot.RADIUS, dot.getY() - Dot.RADIUS, dotInside ? dotPaint : redDotPaint);
+        canvas.drawBitmap(metalBall, mazeDotState.getDot().getX() - Dot.RADIUS, mazeDotState.getDot().getY() - Dot.RADIUS, dotInside ? dotPaint : redDotPaint);
         canvas.drawText("Level: " + mazeDotState.getCurrentLevel(), 10, 40, levelPaint);
+        //canvas.drawText("Sensor: " + mSensorX + " " + mSensorY, 10, 80, levelPaint);
     }
 
     private void scaryMe(Canvas canvas) {
@@ -210,18 +209,21 @@ public class MazeView extends View implements SensorEventListener {
                 .setPositiveButton(R.string.close_button, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialogInterface, int i) {
                         getContext().stopService(new Intent(getContext(), RecorderService.class));
-                        // System.exit(0);
+                        Intent intent = new Intent(getContext(), GameMenu.class);
+                        getContext().startActivity(intent);
                     }
                 })
                 .show();
     }
 
     private boolean isScaryCry() {
-        return mazeDotState.getCurrentLevel() >= mazeDotState.getScaryLevel() && dot.getX() > mDisplay.getWidth() * 2 / 3;
+        return mazeDotState.getCurrentLevel() >= mazeDotState.getScaryLevel()
+                && mazeDotState.getDot().getX() > mDisplay.getWidth() * 2 / 3;
     }
 
     private boolean checkIfLevelCompleted() {
-        if (mazeDotState.getCurrentLevel() > 0 && dot.getY() > 0 && dot.getY() < levelCompletedLowBorder && dot.getX() > levelCompletedTopBorder) {
+        if (mazeDotState.getCurrentLevel() > 0 && mazeDotState.getDot().getY() > 0
+                && mazeDotState.getDot().getY() < levelCompletedLowBorder && mazeDotState.getDot().getX() > levelCompletedTopBorder) {
             return true;
         }
         return false;

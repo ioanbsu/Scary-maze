@@ -5,7 +5,6 @@ import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
-import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
 import com.google.inject.Inject;
@@ -14,8 +13,9 @@ import roboguice.service.RoboService;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * User: ioanbsu
@@ -33,6 +33,9 @@ public class RecorderService extends RoboService {
 
     @Inject
     private MazeDotState mazeDotState;
+
+    @Inject
+    private FileUtils fileUtils;
 
     @Override
     public void onCreate() {
@@ -89,6 +92,19 @@ public class RecorderService extends RoboService {
         mMediaRecorder = new MediaRecorder();
 
         // Step 1: Unlock and set camera to MediaRecorder
+        List<Integer> supportedFrameRates=camera.getParameters().getSupportedPreviewFrameRates();
+        List<Camera.Size> videoSizes = camera.getParameters().getSupportedPreviewSizes();
+        Collections.sort(supportedFrameRates);
+        Collections.sort(videoSizes,new Comparator<Camera.Size>() {
+            @Override
+            public int compare(Camera.Size size1, Camera.Size size2) {
+                if(size1.height!=size2.height){
+                return size2.height-size1.height;
+                }else{
+                    return size2.width-size1.width;
+                }
+            }
+        });
         camera.unlock();
         mMediaRecorder.setCamera(camera);
 
@@ -97,18 +113,19 @@ public class RecorderService extends RoboService {
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
 
         // Step 3: Set a CamcorderProfile (requires API Level 8 or higher)
-        //mMediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_LOW));
+//        mMediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
-        mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
+        mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+        mMediaRecorder.setVideoSize(videoSizes.get(0).width, videoSizes.get(0).height);
+        mMediaRecorder.setVideoFrameRate(supportedFrameRates.get(0));
 
         // Step 4: Set output file
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        File outputFile = getOutputMediaFile();
+        File outputFile = fileUtils.getOutputMediaFile();
         if (outputFile == null) {
             return false;
         }
-        mMediaRecorder.setOutputFile(outputFile.toString() + "/" + mazeDotState.getUserName().replace(" ", "_") + timeStamp + ".mpeg");
+        mMediaRecorder.setOutputFile(outputFile.toString());
 
         // Step 5: Set the preview output
         mMediaRecorder.setPreviewDisplay(mazeDotState.getSurfaceHolder().getSurface());
@@ -130,7 +147,8 @@ public class RecorderService extends RoboService {
 
 
     private boolean checkCameraHardware() {
-        if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+        if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)
+                || getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
             // this device has a camera
             return true;
         } else {
@@ -148,29 +166,6 @@ public class RecorderService extends RoboService {
 
             isRecording = false;
         }
-    }
-
-    private static File getOutputMediaFile() {
-        // To be safe, you should check that the SDCard is mounted
-        // using Environment.getExternalStorageState() before doing this.
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_MOVIES), "MagicMaze");
-        // This location works best if you want the created images to be shared
-        // between applications and persist after your app has been uninstalled.
-
-        // Create the storage directory if it does not exist
-        if (!mediaStorageDir.exists()) {
-            if (!mediaStorageDir.mkdirs()) {
-                Log.d("MagicMaze", "failed to create directory");
-                return null;
-            }
-        }
-
-        // Create a media file name
-        File mediaFile;
-        mediaFile = new File(mediaStorageDir.getPath() + File.separator);
-
-        return mediaFile;
     }
 
     private void configureCamera() {
@@ -201,7 +196,7 @@ public class RecorderService extends RoboService {
         } catch (Exception e) {
             // Camera is not available (in use or does not exist)
         }
-        camera=c;
+        camera = c;
     }
 
     private void releaseMediaRecorder() {

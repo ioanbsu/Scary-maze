@@ -58,7 +58,6 @@ public class MazeActivity extends RoboActivity implements SurfaceHolder.Callback
         mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         mazeDotState.setSurfaceHolder(mSurfaceHolder);
 
-
         showNameEnterDialog();
     }
 
@@ -116,14 +115,18 @@ public class MazeActivity extends RoboActivity implements SurfaceHolder.Callback
         stopService(new Intent(this, RecorderService.class));
         switch (item.getItemId()) {
 
-            case R.id.adjustSensor:
-                Intent intent = new Intent(this, ApplicationConfiguration.class);
+            case R.id.adjustSensor: {
+                Intent intent = new Intent(this, ApplicationSettings.class);
                 startActivity(intent);
                 overridePendingTransition(R.anim.fade, R.anim.hold);
                 return true;
-            /*     case R.id.about:
-           System.out.println("About!!!");
-           return true;*/
+            }
+            case R.id.viewVideos: {
+                Intent intent = new Intent(this, GameMenu.class);
+                startActivity(intent);
+                overridePendingTransition(R.anim.fade, R.anim.hold);
+                return true;
+            }
             default:
                 /*  // Don't toast text when a submenu is clicked
                 if (!item.hasSubMenu()) {
@@ -142,8 +145,8 @@ public class MazeActivity extends RoboActivity implements SurfaceHolder.Callback
     }
 
     private void restoreAppProperties() {
-        mazeDotState.setScaryLevel(sharedPrefs.getInt(ApplicationConfiguration.SCARY_LEVEL_PROPERTY_NAME, mazeDotState.getScaryLevel()));
-        mazeDotState.setSensivityLevel(sharedPrefs.getFloat(ApplicationConfiguration.SENSOR_SENSIVITY, mazeDotState.getSensivityLevel()));
+        mazeDotState.setScaryLevel(sharedPrefs.getInt(ApplicationSettings.SCARY_LEVEL_PROPERTY_NAME, mazeDotState.getScaryLevel()));
+        mazeDotState.setSensivityLevel(sharedPrefs.getFloat(ApplicationSettings.SENSOR_SENSIVITY, mazeDotState.getSensivityLevel()));
     }
 
 }

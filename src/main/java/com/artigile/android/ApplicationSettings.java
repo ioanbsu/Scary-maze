@@ -9,10 +9,13 @@ import com.google.inject.Inject;
 import roboguice.activity.RoboActivity;
 import roboguice.inject.InjectView;
 
+import javax.inject.Singleton;
+
 /**
  * @author IoaN, 7/3/11 11:45 AM
  */
-public class ApplicationConfiguration extends RoboActivity {
+@Singleton
+public class ApplicationSettings extends RoboActivity {
 
     public static final String SCARY_LEVEL_PROPERTY_NAME = "scaryLavel";
 
@@ -22,7 +25,7 @@ public class ApplicationConfiguration extends RoboActivity {
     private SharedPreferences sharedPrefs;
 
     @InjectView(R.id.adjustor_seek)
-    private SeekBar sensorSencivity;
+    private SeekBar sensorSensivity;
 
     @InjectView(R.id.scary_level_text_input)
     private EditText scaryLevelTextBox;
@@ -41,12 +44,12 @@ public class ApplicationConfiguration extends RoboActivity {
     protected void onStart() {
         super.onStart();
         scaryLevelTextBox.setText(mazeDotState.getScaryLevel() + "");
-        sensorSencivity.setProgress((int) (150/mazeDotState.getSensivityLevel()-1));
+        sensorSensivity.setProgress((int) (150 / mazeDotState.getSensivityLevel() - 1));
     }
 
     public void saveSettings(View view) {
         try {
-            mazeDotState.setSensivityLevel(150F / (sensorSencivity.getProgress() + 1));
+            mazeDotState.setSensivityLevel(150F / (sensorSensivity.getProgress() + 1));
         } catch (NumberFormatException e) {
             System.out.println("Error on saving sensor sensitivity");
         }

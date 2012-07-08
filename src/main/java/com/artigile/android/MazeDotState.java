@@ -4,6 +4,7 @@ import android.graphics.Rect;
 import android.view.SurfaceHolder;
 import com.google.inject.Singleton;
 
+import javax.inject.Inject;
 import java.util.List;
 
 /**
@@ -11,6 +12,8 @@ import java.util.List;
  */
 @Singleton
 public class MazeDotState {
+    @Inject
+    private Dot dot;
 
     private SurfaceHolder surfaceHolder;
 
@@ -25,6 +28,13 @@ public class MazeDotState {
     private int currentLevel = 1;
 
     private boolean gameStarted;
+
+    public void resetState(){
+        currentLevel = 1;
+        gameStarted = false;
+        userName="";
+        dot.resetAll();
+    }
 
     public boolean isGameStarted() {
         return gameStarted;
@@ -86,4 +96,11 @@ public class MazeDotState {
         this.scaryLevel = scaryLevel;
     }
 
+    public Dot getDot() {
+        return dot;
+    }
+
+    public void setDot(Dot dot) {
+        this.dot = dot;
+    }
 }
